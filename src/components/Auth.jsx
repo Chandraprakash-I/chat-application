@@ -13,11 +13,40 @@ const initialState={
 }
 
 const Auth = () => {
+    const cookies=new Cookies();
     const [isSignup,setIsSignup]=useState(true);
     const [form,setForm]=useState(initialState);
 
-    const handleSubmit=(event)=>{
+    const handleSubmit=async (event)=>{
         event.preventDefault();
+        console.log(form);
+
+        const{fullName,username,password,phoneNumber,avatarURL}=form;
+        const URL="http://localhost:4000/auth";
+        const {data:{token,userId,hashedPassword}}=await axios.post(`${URL}/${isSignup?'signup':'login'}`
+            ,{
+                username:username,
+                password:password,
+                fullName:fullName,
+                phoneNumber:phoneNumber,
+                avatarURL:avatarURL
+            }
+          );
+
+        cookies.set(`token`,token);
+        cookies.set(`username`,username);
+        cookies.set(`fullName`,fullName);
+        cookies.set(`userId`,userId);
+
+        if(isSignup){
+            cookies.set('phoneNumber',phoneNumber);
+            cookies.set('avatarURL',avatarURL);
+            cookies.set('hashedPassword',hashedPassword);
+
+        }
+
+        window.location.reload();
+
     }
     const handleChange=(e)=>{
         setForm({...form,[e.target.name]:e.target.value});
@@ -33,7 +62,7 @@ const Auth = () => {
                     <p>
                         {isSignup?'Sign Up':'Sign In'}
                     </p>
-                    <form onSubmit={{handleSubmit}}>
+                    <form onSubmit={handleSubmit}>
                         {isSignup &&(
                             <div className='auth__form-container_fields-content_input'>
                                 <label htmlFor='fullName'>Full Name</label>
